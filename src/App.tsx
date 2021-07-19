@@ -1,9 +1,31 @@
 import React from "react";
-import logo from "./logo.svg";
-import "./App.css";
+import { ToastContainer } from "react-toastify";
+import { BrowserRouter } from "react-router-dom";
+import { AuthProvider } from "./hooks/auth";
+import Routes from "./routes";
+import GlobalStyle from "./styles/global";
+import "react-toastify/dist/ReactToastify.css";
 
-function App() {
-  return <div className="App"></div>;
-}
+const App: React.FC = () => {
+  return (
+    <BrowserRouter>
+      <AuthProvider>
+        <Routes />
+        <ToastContainer
+          position="top-right"
+          autoClose={5000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+        />
+      </AuthProvider>
+      <GlobalStyle />
+    </BrowserRouter>
+  );
+};
 
 export default App;
