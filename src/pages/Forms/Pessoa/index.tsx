@@ -131,7 +131,6 @@ const Login: React.FC = () => {
         [name]: value,
       });
     }
-    console.log(pessoa);
   };
 
   const fetchData = async () => {
@@ -227,6 +226,7 @@ const Login: React.FC = () => {
     if (id) {
       fetchData();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   return (

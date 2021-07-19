@@ -28,6 +28,7 @@ const ListView: React.FC<IListViewProps> = ({
 
   useEffect(() => {
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchCount]);
 
   return <Table columns={columns} rows={rows} />;
