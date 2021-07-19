@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
 
-import { FiPower, FiEdit, FiTrash } from "react-icons/fi";
+import { FiPower, FiEdit, FiTrash, FiEye } from "react-icons/fi";
 import ListView from "../../components/ListView";
 import { IColumn } from "../../components/Table";
 import { useAuth } from "../../hooks/auth";
@@ -79,6 +79,11 @@ const Dashboard: React.FC = () => {
           </button>
           <button onClick={() => removerPessoa(id)}>
             <FiTrash color="#b32015" />
+          </button>
+          <button>
+            <Link to={`/viewPessoa/${id}`}>
+              <FiEye color="#4da1f9" />
+            </Link>
           </button>
         </div>
       ),

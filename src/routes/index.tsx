@@ -16,6 +16,7 @@ const Routes: React.FC = () => {
       <Route path="/dashboard" component={Dashboard} isPrivate />
       <Route exact path="/formPessoa" component={FormPessoa} isPrivate />
       <Route exact path="/formPessoa/:id" component={FormPessoa} isPrivate />
+      <Route exact path="/viewPessoa/:id" component={FormPessoa} isPrivate />
     </Switch>
   );
 };

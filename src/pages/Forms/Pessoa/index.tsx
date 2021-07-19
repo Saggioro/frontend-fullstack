@@ -3,7 +3,7 @@ import { FiPower } from "react-icons/fi";
 
 import "react-datepicker/dist/react-datepicker.css";
 import * as Yup from "yup";
-import { useHistory, useParams } from "react-router-dom";
+import { useHistory, useParams, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 
 import Input from "../../../components/Input";
@@ -21,6 +21,15 @@ import { useEffect } from "react";
 interface ErrorsValidation {
   [key: string]: string;
 }
+
+interface IEndereco {
+  rua: string;
+  numero?: number;
+  bairro: string;
+  cidade: string;
+  cep: string;
+  estado: string;
+}
 interface IPessoa {
   id?: string;
   nome: string;
@@ -30,6 +39,7 @@ interface IPessoa {
   nacionalidade?: string;
   cpf: string;
   email?: string;
+  endereco: IEndereco;
 }
 interface IParams {
   id: string;
@@ -37,6 +47,8 @@ interface IParams {
 
 const Login: React.FC = () => {
   const { signOut } = useAuth();
+  const location = useLocation();
+  console.log(location.pathname);
   const { id } = useParams<IParams>();
 
   const initialState: IPessoa = {
@@ -47,10 +59,19 @@ const Login: React.FC = () => {
     nacionalidade: "",
     cpf: "",
     email: "",
+    endereco: {
+      rua: "",
+      numero: undefined,
+      bairro: "",
+      cidade: "",
+      cep: "",
+      estado: "",
+    },
   };
 
   const [pessoa, setPessoa] = useState<IPessoa>(initialState);
   const [isEdditing, setIsEdditing] = useState(false);
+  const [isViewing, setIsViewing] = useState(false);
 
   const [errors, setErrors] = useState<ErrorsValidation>(
     {} as ErrorsValidation
@@ -70,11 +91,19 @@ const Login: React.FC = () => {
           cpf: Yup.string()
             .required("CPF obrigatório")
             .length(11, "Deve conter 11 caracteres"),
-
           nome: Yup.string().required("Nome obrigatório"),
           nascimento: Yup.string().required("Nascimento obrigatório"),
-
           email: Yup.string().email("Email inválido"),
+          endereco: Yup.object().shape({
+            rua: Yup.string().required("Rua obrigatória"),
+            numero: Yup.string().required("Número obrigatório"),
+            bairro: Yup.string().required("Bairro obrigatório"),
+            cidade: Yup.string().required("Cidade obrigatória"),
+            cep: Yup.string()
+              .required("CEP obrigatório")
+              .length(8, "Deve conter 8 caracteres"),
+            estado: Yup.string().required("Estado obrigatório"),
+          }),
         });
 
         await schema.validate(pessoa, {
@@ -117,7 +146,7 @@ const Login: React.FC = () => {
 
   const handleChange = (event: any, date?: Date, pickerName?: string) => {
     const {
-      target: { name, value },
+      target: { name, value, className },
     } = event;
 
     if (pickerName && date) {
@@ -126,10 +155,23 @@ const Login: React.FC = () => {
         [pickerName]: new Date(date),
       });
     } else {
-      setPessoa({
-        ...pessoa,
-        [name]: value,
-      });
+      if (className === "endereco") {
+        console.log("aqui");
+        console.log(pessoa);
+
+        setPessoa({
+          ...pessoa,
+          endereco: {
+            ...pessoa.endereco,
+            [name]: value,
+          },
+        });
+      } else {
+        setPessoa({
+          ...pessoa,
+          [name]: value,
+        });
+      }
     }
   };
 
@@ -137,8 +179,11 @@ const Login: React.FC = () => {
     try {
       const response = await api.get(`/pessoas/${id}`);
       setPessoa(response.data);
-
-      setIsEdditing(true);
+      if (location.pathname === `/viewPessoa/${id}`) {
+        setIsViewing(true);
+      } else {
+        setIsEdditing(true);
+      }
     } catch (err) {
       toast.error(
         err?.response?.data?.errors[0]?.message ||
@@ -220,6 +265,61 @@ const Login: React.FC = () => {
         },
       ],
     },
+    {
+      class: "endereco",
+      name: "cep",
+      placeholder: "CEP",
+      type: "text",
+      value: pessoa.endereco.cep,
+      error: errors.cep,
+      handleChange: handleChange,
+      maxlength: 8,
+    },
+    {
+      class: "endereco",
+      name: "rua",
+      placeholder: "Rua",
+      type: "text",
+      value: pessoa.endereco.rua,
+      error: errors.rua,
+      handleChange: handleChange,
+    },
+    {
+      class: "endereco",
+      name: "numero",
+      placeholder: "Número",
+      type: "number",
+      value: pessoa.endereco.numero,
+      error: errors.numero,
+      handleChange: handleChange,
+    },
+    {
+      class: "endereco",
+      name: "bairro",
+      placeholder: "Bairro",
+      type: "text",
+      value: pessoa.endereco.bairro,
+      error: errors.bairro,
+      handleChange: handleChange,
+    },
+    {
+      class: "endereco",
+      name: "cidade",
+      placeholder: "Cidade",
+      type: "text",
+      value: pessoa.endereco.cidade,
+      error: errors.cidade,
+      handleChange: handleChange,
+    },
+    {
+      class: "endereco",
+      name: "estado",
+      placeholder: "Estado",
+      type: "text",
+      value: pessoa.endereco.estado,
+      error: errors.estado,
+      handleChange: handleChange,
+    },
   ];
 
   useEffect(() => {
@@ -241,7 +341,11 @@ const Login: React.FC = () => {
         </HeaderContent>
       </Header>
       <Content>
-        <h2>{isEdditing ? "Editar pessoa" : "Cadastrar pessoa"}</h2>
+        <h2>
+          {isEdditing && !isViewing && "Editar pessoa"}
+          {!isEdditing && isViewing && "Visualizar pessoa"}
+          {!isEdditing && !isViewing && "Cadastrar pessoa"}
+        </h2>
 
         <form onSubmit={(e) => handleSubmit(e)}>
           {inputs.map((input) =>
@@ -254,9 +358,11 @@ const Login: React.FC = () => {
                 handleChange={handleChange}
                 error={input.error}
                 selectOptions={input.selectOptions}
+                disabled={isViewing}
               />
             ) : (
               <Input
+                className={input.class}
                 key={input.name}
                 name={input.name}
                 placeholder={input.placeholder}
@@ -266,13 +372,16 @@ const Login: React.FC = () => {
                 error={input.error}
                 maxLength={input.maxlength}
                 selectOptions={input.selectOptions}
+                disabled={isViewing}
               />
             )
           )}
 
-          <Button type="submit" loading={loading}>
-            Cadastrar
-          </Button>
+          {!isViewing && (
+            <Button type="submit" loading={loading}>
+              Cadastrar
+            </Button>
+          )}
         </form>
       </Content>
     </Container>
