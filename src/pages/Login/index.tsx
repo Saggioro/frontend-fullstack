@@ -110,7 +110,7 @@ const Login: React.FC = () => {
               icon={FiLock}
               type="password"
               placeholder="Senha"
-              value={credentials.login}
+              value={credentials.senha}
               handleChange={handleChange}
               error={errors.senha}
             />
